@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { extractScanInfo } from "@/lib/analytics";
 
 export async function GET(
   request: NextRequest,
@@ -29,16 +28,15 @@ export async function GET(
     return NextResponse.redirect(url);
   }
 
-  // Track the scan asynchronously
-  const scanInfo = extractScanInfo(request);
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    null;
+
   prisma.scan.create({
     data: {
       qrCodeId: qr.id,
-      ip: scanInfo.ip,
-      device: scanInfo.device,
-      browser: scanInfo.browser,
-      os: scanInfo.os,
-      referer: scanInfo.referer,
+      ip,
     },
   }).catch(() => {});
 

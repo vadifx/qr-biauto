@@ -26,7 +26,6 @@ import {
   LayoutDashboard,
   QrCode,
   FolderOpen,
-  BarChart3,
   Settings,
   LogOut,
   ChevronUp,
@@ -38,7 +37,6 @@ const navItems = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "I miei QR", href: "/qr", icon: QrCode },
   { title: "Cartelle", href: "/folders", icon: FolderOpen },
-  { title: "Analytics", href: "/analytics", icon: BarChart3 },
   { title: "Impostazioni", href: "/settings", icon: Settings },
 ];
 

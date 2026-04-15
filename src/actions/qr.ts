@@ -191,83 +191,21 @@ export async function getQRCode(id: string) {
 export async function getDashboardStats() {
   const userId = await getUserId();
 
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekStart = new Date(todayStart);
-  weekStart.setDate(weekStart.getDate() - 7);
-  const monthStart = new Date(todayStart);
-  monthStart.setDate(monthStart.getDate() - 30);
-
-  const [totalQR, activeQR, totalScans, scansToday, scansWeek, scansMonth, recentQR] =
-    await Promise.all([
-      prisma.qRCode.count({ where: { userId } }),
-      prisma.qRCode.count({ where: { userId, isActive: true } }),
-      prisma.scan.count({
-        where: { qrCode: { userId } },
-      }),
-      prisma.scan.count({
-        where: { qrCode: { userId }, scannedAt: { gte: todayStart } },
-      }),
-      prisma.scan.count({
-        where: { qrCode: { userId }, scannedAt: { gte: weekStart } },
-      }),
-      prisma.scan.count({
-        where: { qrCode: { userId }, scannedAt: { gte: monthStart } },
-      }),
-      prisma.qRCode.findMany({
-        where: { userId },
-        include: { _count: { select: { scans: true } } },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      }),
-    ]);
+  const [totalQR, activeQR, recentQR] = await Promise.all([
+    prisma.qRCode.count({ where: { userId } }),
+    prisma.qRCode.count({ where: { userId, isActive: true } }),
+    prisma.qRCode.findMany({
+      where: { userId },
+      include: { _count: { select: { scans: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ]);
 
   return {
     totalQR,
     activeQR,
-    totalScans,
-    scansToday,
-    scansWeek,
-    scansMonth,
     recentQR,
   };
 }
 
-export async function getScansForChart(qrCodeId?: string, days = 30) {
-  const userId = await getUserId();
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-
-  const where: Record<string, unknown> = {
-    scannedAt: { gte: since },
-  };
-
-  if (qrCodeId) {
-    where.qrCodeId = qrCodeId;
-    where.qrCode = { userId };
-  } else {
-    where.qrCode = { userId };
-  }
-
-  const scans = await prisma.scan.findMany({
-    where,
-    select: { scannedAt: true },
-    orderBy: { scannedAt: "asc" },
-  });
-
-  const chartData: { date: string; scans: number }[] = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split("T")[0];
-    chartData.push({ date: dateStr, scans: 0 });
-  }
-
-  for (const scan of scans) {
-    const dateStr = scan.scannedAt.toISOString().split("T")[0];
-    const entry = chartData.find((d) => d.date === dateStr);
-    if (entry) entry.scans++;
-  }
-
-  return chartData;
-}

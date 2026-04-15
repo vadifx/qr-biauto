@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getQRCode, getScansForChart } from "@/actions/qr";
+import { getQRCode } from "@/actions/qr";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,16 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QRPreview } from "@/components/qr/qr-preview";
 import { QRDownloadDialog } from "@/components/qr/qr-download-dialog";
-import { ScanChart } from "@/components/analytics/scan-chart";
 import { CopyButton } from "@/components/qr/copy-button";
 import {
   Edit,
   ExternalLink,
-  Eye,
-  Clock,
-  Calendar,
   Monitor,
   Globe,
+  Calendar,
   ArrowRight,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -33,8 +30,6 @@ export default async function QRDetailPage({ params }: QRDetailPageProps) {
   const qr = await getQRCode(id);
 
   if (!qr) notFound();
-
-  const chartData = await getScansForChart(qr.id, 30);
 
   const session = await auth();
   const recentScans = await prisma.scan.findMany({
@@ -121,23 +116,11 @@ export default async function QRDetailPage({ params }: QRDetailPageProps) {
         </Card>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="analytics">
+          <Tabs defaultValue="scans">
             <TabsList>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="scans">Scansioni Recenti</TabsTrigger>
               <TabsTrigger value="history">Cronologia Link</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="analytics" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Scansioni ultimi 30 giorni</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScanChart data={chartData} />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="scans">
               <Card>
