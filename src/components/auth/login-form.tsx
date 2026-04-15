@@ -21,9 +21,13 @@ export function LoginForm() {
       if (result?.error) {
         setError(result.error);
       }
-    } catch {
-      window.location.href = "/dashboard";
-      return;
+    } catch (err) {
+      // Auth.js signIn throws a NEXT_REDIRECT on success — let the browser follow it
+      if (err instanceof Error && err.message?.includes("NEXT_REDIRECT")) {
+        window.location.href = "/dashboard";
+        return;
+      }
+      setError("Si è verificato un errore. Riprova.");
     } finally {
       setLoading(false);
     }
