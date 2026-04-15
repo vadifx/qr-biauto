@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import { Loader2, QrCode } from "lucide-react";
 export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -24,7 +22,8 @@ export function RegisterForm() {
         setError(result.error);
       }
     } catch {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
+      return;
     } finally {
       setLoading(false);
     }
